@@ -171,12 +171,16 @@ class MetProduct(Product):
         print("Merging temporary files...")
         remove_if_datafile_exists(ts.datafile)
 
-        ds_all = [xr.open_dataset(file, engine="h5netcdf") for file in tqdm(tempfiles)]
+        ds_list = []
+        for file in tqdm(tempfiles):
+            with xr.open_dataset(file, engine="h5netcdf") as ds:
+                ds_list.append(ds.load())
 
         # Merge temp files along time axis
-        ds = xr.concat(ds_all, dim="time")
+        ds = xr.concat(ds_list, dim="time")
 
-        del ds_all
+        # Clear references
+        del ds_list
         gc.collect()
 
         if save_nc:
@@ -194,6 +198,9 @@ class MetProduct(Product):
             save_csv=save_csv,
             **flatten_dims,
         )
+
+        del ds
+        gc.collect()
 
         if not use_cache:
             # remove temp/cache files

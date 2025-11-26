@@ -7,6 +7,7 @@ import itertools
 import time
 import sys
 import threading
+import gc
 
 def distance_2points(lat1, lon1, lat2, lon2):
     R = 6371.0
@@ -106,6 +107,8 @@ def create_dataframe(product, ds: xr.Dataset, lon_near, lat_near, outfile, start
 def save_to_netcdf(ds, outfile):
     remove_if_datafile_exists(outfile)
     ds.to_netcdf(outfile)
+    del ds
+    gc.collect()
     print(f"NetCDF file created at {outfile}")
 
 
